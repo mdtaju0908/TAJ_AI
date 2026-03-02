@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Disallow sensitive server routes
+Disallow: /api/
+
+Sitemap: https://tajai.com/sitemap.xml
