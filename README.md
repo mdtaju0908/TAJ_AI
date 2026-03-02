@@ -1,47 +1,51 @@
-# TAJ AI - Your Smart AI Assistant
+# 🤖 TAJ AI
 
-TAJ AI is a full-stack AI assistant web application built with Next.js 14, Tailwind CSS, and OpenAI GPT-4o. It features a modern, clean UI similar to Gemini/ChatGPT, with real-time streaming responses, chat history, and dark mode.
+TAJ AI is a modern AI chat assistant built with **Next.js + Node.js + Gemini API**.  
+It provides a clean Glassmorphism UI and powerful AI features like Thinking Mode, Deep Research, and Web Search.
 
-## Features
+---
 
-- **Modern UI**: Clean, responsive interface with dark/light mode support.
-- **AI Integration**: Powered by Google Gemini API (via Vercel AI SDK).
-- **Streaming Responses**: Real-time text generation for a smooth user experience.
-- **Chat History**: Automatically saves conversations to MongoDB.
-- **Markdown Support**: Renders code blocks and formatted text beautifully.
-- **Sidebar**: Easy navigation between different chat sessions.
+## 🚀 Features
 
-## Tech Stack
+- 💬 AI Chat Interface
+- 🤖 Gemini AI Integration
+- ⚡ Thinking Mode
+- 🔍 Deep Research Mode
+- 🌐 Web Search Mode
+- 📋 Copy Messages
+- ✏️ Edit Messages
+- 📥 Download Responses
+- 🌙 Dark Glassmorphism UI
+- 📱 Responsive Design
 
-- **Frontend**: Next.js 14 (App Router), React, Tailwind CSS, Framer Motion
-- **Backend**: Next.js API Routes
-- **Database**: MongoDB (via Mongoose)
-- **AI**: OpenAI (GPT-4o / GPT-4.1 via Vercel AI SDK)
+---
 
-## Getting Started
+## 🛠 Tech Stack
 
-1.  **Clone the repository**
-2.  **Install dependencies**:
-    ```bash
-    npm install
-    ```
-3.  **Set up environment variables**:
-    Copy `.env.example` to `.env.local` and fill in your values.
-    ```bash
-    cp .env.example .env.local
-    ```
-    You need:
-    - `OPENAI_API_KEY`: Get it from OpenAI.
-    - `MONGODB_URI`: Your MongoDB connection string.
+### Frontend
+- Next.js
+- React
+- TailwindCSS
+- Lucide Icons
 
-4.  **Run the development server**:
-    ```bash
-    npm run dev
-    ```
+### Backend
+- Node.js
+- Express.js
+- Gemini API
 
-5.  **Open in browser**:
-    Navigate to `http://localhost:3000`.
+---
 
-## License
+## 📂 Project Structure
 
-MIT
+```bash
+TAJ_AI/
+├── frontend/
+│ ├── app/
+│ ├── components/
+│ ├── public/
+│
+├── backend/
+│ ├── routes/
+│ ├── server.js
+│ ├── .env
+```
