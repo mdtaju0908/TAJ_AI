@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Send, Bot, Loader2, Paperclip } from 'lucide-react';
+import { Send, Bot, Loader2, Paperclip, Plus, Brain, Search, Microscope } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { MessageBubble } from './MessageBubble';
 import { cn } from '@/lib/utils';
@@ -17,6 +17,8 @@ export function ChatInterface({ id, initialMessages }: ChatInterfaceProps) {
   const [chatId, setChatId] = useState<string | undefined>(id);
   const [approxTokens, setApproxTokens] = useState<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const modeButtonRef = useRef<HTMLButtonElement>(null);
+  const modeMenuRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<Array<{ id: string; role: 'user' | 'assistant'; content: string }>>(
     (initialMessages || []).map(m => ({
       id: m.id || Math.random().toString(36).slice(2),
@@ -26,12 +28,25 @@ export function ChatInterface({ id, initialMessages }: ChatInterfaceProps) {
   );
   const [input, setInput] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [mode, setMode] = useState<'normal' | 'thinking' | 'research' | 'search'>('normal');
+  const [modeMenuOpen, setModeMenuOpen] = useState<boolean>(false);
 
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
+
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (!modeMenuOpen) return;
+      const target = e.target as Node;
+      if (modeMenuRef.current?.contains(target) || modeButtonRef.current?.contains(target)) return;
+      setModeMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, [modeMenuOpen]);
 
   // If id prop changes, update internal state
   useEffect(() => {
@@ -78,7 +93,7 @@ export function ChatInterface({ id, initialMessages }: ChatInterfaceProps) {
       const res = await fetch('http://localhost:5000/api/chat-json', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: [...messages, userMsg], chatId }),
+        body: JSON.stringify({ messages: [...messages, userMsg], chatId, mode }),
       });
       if (res.ok) {
         const data = await res.json();
@@ -128,7 +143,7 @@ export function ChatInterface({ id, initialMessages }: ChatInterfaceProps) {
         )}
         {isLoading && (
            <div className="flex justify-start mb-6">
-             <div className="flex items-center space-x-2 bg-[rgba(255,255,255,0.07)] backdrop-blur-[15px] border border-[rgba(255,255,255,0.1)] rounded-2xl p-4 rounded-bl-none text-white">
+             <div className="flex items-center space-x-2 bg-[rgba(20,20,30,0.75)] backdrop-blur-[18px] border border-[rgba(255,255,255,0.08)] rounded-2xl p-4 rounded-bl-none text-white shadow-[0_0_24px_rgba(0,0,0,0.35)]">
                <Loader2 className="w-5 h-5 animate-spin text-[#3B82F6]" />
                <span className="text-sm text-gray-300">Thinking...</span>
              </div>
@@ -140,21 +155,80 @@ export function ChatInterface({ id, initialMessages }: ChatInterfaceProps) {
       {/* Input Area */}
       <div className="p-4">
         <div className="max-w-3xl mx-auto relative">
-          <form onSubmit={handleSubmit} className="relative flex items-center bg-[rgba(255,255,255,0.07)] backdrop-blur-[15px] border border-[rgba(255,255,255,0.1)] rounded-2xl p-[14px]">
+          {mode !== 'normal' && (
+            <div className="mb-2 flex items-center gap-2 text-xs text-blue-200">
+              <span className="px-3 py-1 rounded-full bg-[rgba(59,130,246,0.2)] border border-[rgba(59,130,246,0.3)] shadow-[0_0_18px_rgba(59,130,246,0.25)]">
+                {mode === 'thinking' && '⚡ Thinking Mode Active'}
+                {mode === 'research' && '🔍 Deep Research Mode Active'}
+                {mode === 'search' && '🌐 Web Search Mode Active'}
+              </span>
+            </div>
+          )}
+          <form onSubmit={handleSubmit} className="relative flex items-center bg-[rgba(20,20,30,0.75)] backdrop-blur-[18px] border border-[rgba(255,255,255,0.08)] rounded-2xl p-[14px] shadow-[0_0_24px_rgba(0,0,0,0.35)]">
             <button
               type="button"
+              ref={modeButtonRef}
               className="absolute left-3 text-gray-300 hover:text-white transition-colors"
+              title="More"
+              onClick={() => setModeMenuOpen(prev => !prev)}
+            >
+              <Plus className="w-5 h-5" />
+            </button>
+            <button
+              type="button"
+              className="absolute left-12 text-gray-300 hover:text-white transition-colors"
               title="Attach file (Coming soon)"
               onClick={onAttachClick}
             >
               <Paperclip className="w-5 h-5" />
             </button>
+            <div
+              ref={modeMenuRef}
+              className={cn(
+                "absolute left-3 bottom-full mb-3 w-56 rounded-[14px] border border-[rgba(255,255,255,0.1)] bg-[rgba(20,20,30,0.85)] backdrop-blur-[20px] shadow-[0px_10px_40px_rgba(0,0,0,0.4)] p-2 transition-all duration-200",
+                modeMenuOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
+              )}
+            >
+              <button
+                type="button"
+                onClick={() => { setMode('thinking'); setModeMenuOpen(false); }}
+                className={cn(
+                  "flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-white hover:bg-[rgba(59,130,246,0.2)] transition-all duration-200",
+                  mode === 'thinking' && "bg-[rgba(59,130,246,0.25)]"
+                )}
+              >
+                <Brain className="w-4 h-4 text-blue-300" />
+                Thinking
+              </button>
+              <button
+                type="button"
+                onClick={() => { setMode('research'); setModeMenuOpen(false); }}
+                className={cn(
+                  "flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-white hover:bg-[rgba(59,130,246,0.2)] transition-all duration-200",
+                  mode === 'research' && "bg-[rgba(59,130,246,0.25)]"
+                )}
+              >
+                <Microscope className="w-4 h-4 text-blue-300" />
+                Deep Research
+              </button>
+              <button
+                type="button"
+                onClick={() => { setMode('search'); setModeMenuOpen(false); }}
+                className={cn(
+                  "flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-white hover:bg-[rgba(59,130,246,0.2)] transition-all duration-200",
+                  mode === 'search' && "bg-[rgba(59,130,246,0.25)]"
+                )}
+              >
+                <Search className="w-4 h-4 text-blue-300" />
+                Web Search
+              </button>
+            </div>
             
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Message TAJ AI..."
-              className="w-full pl-12 pr-12 bg-transparent border-none focus:outline-none text-white placeholder-gray-300"
+              className="w-full pl-24 pr-12 bg-transparent border-none focus:outline-none text-white placeholder-gray-300"
               disabled={isLoading}
             />
 

@@ -42,14 +42,14 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ role, content, onE
           className={cn(
             "rounded-2xl p-4 shadow-sm",
             role === "user"
-              ? "bg-blue-600 text-white rounded-br-none"
-              : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-bl-none"
+              ? "bg-gradient-to-tr from-[#2563EB] to-[#3B82F6] text-white rounded-br-none shadow-[0_0_30px_rgba(59,130,246,0.25)]"
+              : "bg-[rgba(20,20,30,0.75)] text-gray-100 border border-[rgba(255,255,255,0.08)] backdrop-blur-[18px] rounded-bl-none shadow-[0_0_24px_rgba(0,0,0,0.35)]"
           )}
         >
           <div className="mr-3 mt-1 shrink-0">
             {role === 'user' ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5 text-blue-500" />}
           </div>
-          <div className="prose dark:prose-invert max-w-none text-sm md:text-base overflow-hidden">
+          <div className="prose prose-invert max-w-none text-sm md:text-base overflow-hidden">
             <ReactMarkdown
               components={{
                 code({ node, inline, className, children, ...props }: any) {
@@ -59,7 +59,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ role, content, onE
                       <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => copyToClipboard(String(children).replace(/\n$/, ''))}
-                          className="p-1 bg-gray-700 text-white rounded hover:bg-gray-600"
+                        className="p-1 bg-[rgba(0,0,0,0.6)] text-white rounded hover:bg-[rgba(59,130,246,0.35)]"
                           title="Copy code"
                         >
                           {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -75,7 +75,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ role, content, onE
                       </SyntaxHighlighter>
                     </div>
                   ) : (
-                    <code className={cn("bg-gray-200 dark:bg-gray-700 rounded px-1 py-0.5", className)} {...props}>
+                    <code className={cn("bg-[rgba(0,0,0,0.45)] text-blue-100 rounded px-1 py-0.5", className)} {...props}>
                       {children}
                     </code>
                   );
