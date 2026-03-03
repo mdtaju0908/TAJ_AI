@@ -95,21 +95,28 @@ export function ChatInterface({ id, initialMessages }: ChatInterfaceProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: [...messages, userMsg], chatId, mode }),
       });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.chatId && data.chatId !== chatId) {
-          setChatId(data.chatId);
-          try {
-            window.history.replaceState({}, '', `/chat/${data.chatId}`);
-          } catch {}
-        }
-        const assistantMsg = { id: Math.random().toString(36).slice(2), role: 'assistant' as const, content: data.reply || '' };
-        setMessages(prev => [...prev, assistantMsg]);
-        const contentLength = (assistantMsg.content || '').length;
-        setApproxTokens(prev => prev + Math.ceil(contentLength / 4));
-      } else {
-        alert('Failed to send message');
+      let data: any = null;
+      try {
+        data = await res.json();
+      } catch {}
+      if (!res.ok) {
+        alert((data && data.error) ? String(data.error) : 'Failed to send message');
+        return;
       }
+      if (data?.success !== true) {
+        alert('AI service error');
+        return;
+      }
+      if (data.chatId && data.chatId !== chatId) {
+        setChatId(data.chatId);
+        try {
+          window.history.replaceState({}, '', `/chat/${data.chatId}`);
+        } catch {}
+      }
+      const assistantMsg = { id: Math.random().toString(36).slice(2), role: 'assistant' as const, content: data.reply || '' };
+      setMessages(prev => [...prev, assistantMsg]);
+      const contentLength = (assistantMsg.content || '').length;
+      setApproxTokens(prev => prev + Math.ceil(contentLength / 4));
     } catch {
       alert('Network error');
     } finally {
