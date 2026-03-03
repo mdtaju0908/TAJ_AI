@@ -82,8 +82,9 @@ export function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
 
       {/* Sidebar Container */}
       <div className={cn(
-        "fixed inset-y-0 left-0 z-50 w-[260px] m-3 md:m-4 rounded-2xl shadow-lg transform transition-transform duration-200 ease-in-out",
-        "bg-[rgba(255,255,255,0.08)] backdrop-blur-[20px] border border-[rgba(255,255,255,0.15)]",
+        "fixed inset-y-0 left-0 z-50 w-[260px] m-3 md:m-4 rounded-2xl transform transition-transform duration-200 ease-in-out",
+        "bg-[rgba(255,255,255,0.05)] backdrop-blur-[20px] border border-[rgba(255,255,255,0.1)]",
+        "shadow-[0_8px_32px_rgba(0,0,0,0.3),0_0_20px_rgba(59,130,246,0.4)]",
         "md:translate-x-0 flex flex-col",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}>
@@ -104,7 +105,7 @@ export function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
         {/* New Chat Button */}
         <div className="px-4 mb-4">
           <button 
-            className="flex items-center justify-center space-x-2 w-full py-3 px-4 rounded-xl transition-colors text-white"
+            className="flex items-center justify-center space-x-2 w-full py-3 px-4 rounded-xl text-white transition-all duration-300 hover:scale-105"
             onClick={async () => {
               try {
                 const res = await fetch('http://localhost:5000/api/chats', {
@@ -124,7 +125,7 @@ export function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
               }
             }}
           >
-            <div className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gradient-to-tr from-[#2563EB] to-[#3B82F6] hover:from-[#1D4ED8] hover:to-[#2563EB] shadow-[0_0_30px_rgba(59,130,246,0.25)]">
+            <div className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gradient-to-tr from-[#2563EB] to-[#3B82F6] hover:from-[#1D4ED8] hover:to-[#2563EB] shadow-[0_8px_32px_rgba(0,0,0,0.3),0_0_20px_rgba(59,130,246,0.4)]">
               <Plus className="w-5 h-5" />
               <span>New Chat</span>
             </div>
@@ -142,10 +143,11 @@ export function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
               href={`/chat/${chat._id}`}
               onClick={onClose}
               className={cn(
-                "group flex items-center justify-between p-3 rounded-lg text-sm transition-colors",
+                "group flex items-center justify-between p-3 rounded-lg text-sm transition-all duration-300",
+                "bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] backdrop-blur-[20px]",
                 pathname === `/chat/${chat._id}`
-                  ? "bg-white/10 text-white"
-                  : "text-gray-200 hover:bg-white/10"
+                  ? "text-white shadow-[0_8px_32px_rgba(0,0,0,0.25),0_0_12px_rgba(59,130,246,0.25)]"
+                  : "text-gray-200 hover:scale-[1.02] hover:shadow-[0_8px_32px_rgba(0,0,0,0.25),0_0_12px_rgba(59,130,246,0.25)]"
               )}
             >
               <div className="flex items-center space-x-3 overflow-hidden">

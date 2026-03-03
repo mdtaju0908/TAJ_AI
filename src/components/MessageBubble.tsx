@@ -40,10 +40,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ role, content, onE
       <div className="flex flex-col max-w-[80%] md:max-w-[70%]">
         <div
           className={cn(
-            "rounded-2xl p-4 shadow-sm",
+            "rounded-2xl p-4 transition-all duration-300 animate-fade-in",
             role === "user"
-              ? "bg-gradient-to-tr from-[#2563EB] to-[#3B82F6] text-white rounded-br-none shadow-[0_0_30px_rgba(59,130,246,0.25)]"
-              : "bg-[rgba(20,20,30,0.75)] text-gray-100 border border-[rgba(255,255,255,0.08)] backdrop-blur-[18px] rounded-bl-none shadow-[0_0_24px_rgba(0,0,0,0.35)]"
+              ? "bg-[rgba(59,130,246,0.12)] text-white border border-[rgba(255,255,255,0.1)] backdrop-blur-[20px] rounded-br-none shadow-[0_8px_32px_rgba(0,0,0,0.3),0_0_20px_rgba(59,130,246,0.4)]"
+              : "bg-[rgba(255,255,255,0.05)] text-gray-100 border border-[rgba(255,255,255,0.1)] backdrop-blur-[20px] rounded-bl-none shadow-[0_8px_32px_rgba(0,0,0,0.3),0_0_20px_rgba(59,130,246,0.25)]"
           )}
         >
           <div className="mr-3 mt-1 shrink-0">

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Send, Bot, Loader2, Paperclip, Plus, Brain, Search, Microscope } from 'lucide-react';
+import { Send, Bot, Loader2, Paperclip, Plus, Brain, Search, Microscope, Mic } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { MessageBubble } from './MessageBubble';
 import { cn } from '@/lib/utils';
@@ -126,6 +126,21 @@ export function ChatInterface({ id, initialMessages }: ChatInterfaceProps) {
 
   return (
     <div className="flex flex-col h-full">
+      <div className="px-4 pt-2">
+        <div className="max-w-5xl mx-auto mb-3 flex items-center justify-between rounded-2xl border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] backdrop-blur-[20px] px-4 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.3),0_0_20px_rgba(59,130,246,0.4)]">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center rounded-xl p-2 border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.08)] backdrop-blur-[20px] shadow-[0_8px_32px_rgba(0,0,0,0.3),0_0_20px_rgba(59,130,246,0.4)] transition-all duration-300 hover:scale-105">
+              <img src="/logo.png" alt="TAJ AI" className="h-7 w-auto" />
+            </div>
+            <span className="font-semibold text-white">TAJ AI</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 text-xs rounded-full bg-[rgba(59,130,246,0.2)] border border-[rgba(59,130,246,0.3)] text-blue-200">
+              {mode === 'search' ? '🌐 Web Search Active' : '🟢 Online'}
+            </span>
+          </div>
+        </div>
+      </div>
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scroll-smooth">
         {messages.length === 0 ? (
@@ -150,7 +165,7 @@ export function ChatInterface({ id, initialMessages }: ChatInterfaceProps) {
         )}
         {isLoading && (
            <div className="flex justify-start mb-6">
-             <div className="flex items-center space-x-2 bg-[rgba(20,20,30,0.75)] backdrop-blur-[18px] border border-[rgba(255,255,255,0.08)] rounded-2xl p-4 rounded-bl-none text-white shadow-[0_0_24px_rgba(0,0,0,0.35)]">
+             <div className="flex items-center space-x-2 bg-[rgba(255,255,255,0.05)] backdrop-blur-[20px] border border-[rgba(255,255,255,0.1)] rounded-2xl p-4 rounded-bl-none text-white shadow-[0_8px_32px_rgba(0,0,0,0.3),0_0_20px_rgba(59,130,246,0.25)]">
                <Loader2 className="w-5 h-5 animate-spin text-[#3B82F6]" />
                <span className="text-sm text-gray-300">Thinking...</span>
              </div>
@@ -171,7 +186,7 @@ export function ChatInterface({ id, initialMessages }: ChatInterfaceProps) {
               </span>
             </div>
           )}
-          <form onSubmit={handleSubmit} className="relative flex items-center bg-[rgba(20,20,30,0.75)] backdrop-blur-[18px] border border-[rgba(255,255,255,0.08)] rounded-2xl p-[14px] shadow-[0_0_24px_rgba(0,0,0,0.35)]">
+          <form onSubmit={handleSubmit} className="relative flex items-center bg-[rgba(255,255,255,0.05)] backdrop-blur-[20px] border border-[rgba(255,255,255,0.1)] rounded-2xl p-[14px] shadow-[0_8px_32px_rgba(0,0,0,0.3),0_0_20px_rgba(59,130,246,0.4)]">
             <button
               type="button"
               ref={modeButtonRef}
@@ -188,6 +203,14 @@ export function ChatInterface({ id, initialMessages }: ChatInterfaceProps) {
               onClick={onAttachClick}
             >
               <Paperclip className="w-5 h-5" />
+            </button>
+            <button
+              type="button"
+              className="absolute left-[88px] text-gray-300 hover:text-white transition-colors"
+              title="Toggle Web Search"
+              onClick={() => setMode(prev => (prev === 'search' ? 'normal' : 'search'))}
+            >
+              <Search className={cn("w-5 h-5", mode === 'search' ? "text-blue-400" : "")} />
             </button>
             <div
               ref={modeMenuRef}
@@ -231,19 +254,33 @@ export function ChatInterface({ id, initialMessages }: ChatInterfaceProps) {
               </button>
             </div>
             
-            <input
+            <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              onInput={(e) => {
+                const ta = e.currentTarget;
+                ta.style.height = 'auto';
+                ta.style.height = Math.min(200, ta.scrollHeight) + 'px';
+              }}
+              rows={1}
               placeholder="Message TAJ AI..."
-              className="w-full pl-24 pr-12 bg-transparent border-none focus:outline-none text-white placeholder-gray-300"
+              className="w-full pl-28 pr-44 bg-transparent border-none focus:outline-none text-white placeholder-gray-300 resize-none"
               disabled={isLoading}
             />
 
             <div className="absolute right-3 flex items-center space-x-2">
               <button
+                type="button"
+                className="p-2 rounded-full text-gray-300 hover:text-white transition-all duration-300 hover:scale-105 bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] backdrop-blur-[10px]"
+                title="Voice input (coming soon)"
+                onClick={() => alert('Voice input coming soon')}
+              >
+                <Mic className="w-5 h-5" />
+              </button>
+              <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="p-2 rounded-full bg-gradient-to-tr from-[#2563EB] to-[#3B82F6] text-white hover:from-[#1D4ED8] hover:to-[#2563EB] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-[0_0_30px_rgba(59,130,246,0.25)]"
+                className="p-2 rounded-full bg-gradient-to-tr from-[#2563EB] to-[#3B82F6] text-white hover:from-[#1D4ED8] hover:to-[#2563EB] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105 shadow-[0_0_30px_rgba(59,130,246,0.4)]"
               >
                 <Send className="w-5 h-5" />
               </button>
