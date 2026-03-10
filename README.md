@@ -39,13 +39,35 @@ It provides a clean Glassmorphism UI and powerful AI features like Thinking Mode
 
 ```bash
 TAJ_AI/
-├── frontend/
-│ ├── app/
-│ ├── components/
-│ ├── public/
-│
-├── backend/
-│ ├── routes/
-│ ├── server.js
-│ ├── .env
+├── src/
+│   ├── app/
+│   │   ├── chat/
+│   │   │   └── [id]/
+│   │   │       └── page.tsx
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   ├── components/
+│   │   ├── ChatInterface.tsx
+│   │   ├── ClientLayout.tsx
+│   │   ├── MessageBubble.tsx
+│   │   ├── Sidebar.tsx
+│   │   ├── ThemeToggle.tsx
+│   │   └── theme-provider.tsx
+│   └── lib/
+│       └── utils.ts
+├── public/
+│   ├── logo.png
+│   ├── robots.txt
+│   └── sitemap.xml
+├── .eslintrc.json
+├── .gitignore
+├── next-env.d.ts
+├── next.config.mjs
+├── package-lock.json
+├── package.json
+├── postcss.config.mjs
+├── tailwind.config.ts
+├── tsconfig.json
+└── README.md
 ```

@@ -1,6 +1,5 @@
 import { ChatInterface } from "@/components/ChatInterface";
 import { notFound } from "next/navigation";
-import { Message } from "ai";
 
 interface ChatPageProps {
   params: {
@@ -17,8 +16,9 @@ async function getChat(id: string) {
       id: msg._id ? msg._id.toString() : Math.random().toString(36).substring(7),
       role: msg.role,
       content: msg.content,
+      images: msg.images,
       createdAt: msg.createdAt,
-    })) as Message[];
+    }));
     return { ...chat, messages };
   } catch {
     return null;
