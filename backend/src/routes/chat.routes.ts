@@ -7,11 +7,14 @@ import {
   deleteChat,
   addMessage
 } from '../controllers/chat.controller';
+import { streamGeminiChat } from '../controllers/gemini.controller';
 import { protect } from '../middleware/auth.middleware';
 
 const router = express.Router();
 
 router.use(protect);
+
+router.post('/gemini', streamGeminiChat);
 
 router.route('/')
   .get(getChats)

@@ -5,6 +5,7 @@ export const config = {
   mongoUri: process.env.MONGO_URI || 'mongodb://localhost:27017/taj_ai_db',
   jwtSecret: process.env.JWT_SECRET || 'default_secret',
   jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || 'default_refresh_secret',
+  geminiApiKey: process.env.GEMINI_API_KEY || '',
   cloudinary: {
     cloudName: process.env.CLOUDINARY_CLOUD_NAME,
     apiKey: process.env.CLOUDINARY_API_KEY,

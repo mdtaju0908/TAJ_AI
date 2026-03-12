@@ -22,7 +22,7 @@ const tabs: { key: TabKey; label: string; icon: React.ReactNode }[] = [
 ];
 
 export function SettingsModal() {
-  const { clearHistory, exportChats } = useChatStore();
+  const { clearHistory } = useChatStore();
   const { isSettingsOpen, setSettingsOpen } = useUIStore();
   const settings = useSettingsStore();
   const { setTheme } = useTheme();
@@ -254,10 +254,10 @@ export function SettingsModal() {
                             />
                           </div>
                           <div className="pt-4 border-t border-white/10 flex flex-col gap-2">
-                             <Button variant="outline" onClick={() => exportChats('json')} className="justify-start gap-2">
+                             <Button variant="outline" disabled className="justify-start gap-2 opacity-50 cursor-not-allowed">
                                <Download className="w-4 h-4" /> Export Chats (JSON)
                              </Button>
-                             <Button variant="outline" onClick={() => exportChats('txt')} className="justify-start gap-2">
+                             <Button variant="outline" disabled className="justify-start gap-2 opacity-50 cursor-not-allowed">
                                <Download className="w-4 h-4" /> Export Chats (TXT)
                              </Button>
                              <Button variant="destructive" onClick={clearHistory} className="justify-start gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 border-red-500/20">

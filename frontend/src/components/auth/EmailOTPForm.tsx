@@ -12,9 +12,11 @@ import {
 } from "@/components/ui/input-otp";
 import { useAuth } from "@/hooks/useAuth";
 import { useOTP } from "@/hooks/useOTP";
+import { api, getHeaders } from "@/lib/api";
 import { Loader2, Mail, User, ArrowRight, RefreshCw } from "lucide-react";
 import { AuthError } from "./AuthError";
 import toast from "react-hot-toast";
+import Cookies from "js-cookie";
 
 type AuthStep = "email" | "otp" | "name";
 
@@ -24,7 +26,7 @@ interface EmailOTPFormProps {
 }
 
 export function EmailOTPForm({ isSignUp, onSuccess }: EmailOTPFormProps) {
-  const { sendOTP, verifyOTP, updateProfile, login } = useAuth();
+  const { verifyOTP, updateProfile } = useAuth();
   const { timer, canResend, startTimer } = useOTP();
   const [step, setStep] = useState<AuthStep>("email");
   const [email, setEmail] = useState("");
@@ -44,13 +46,13 @@ export function EmailOTPForm({ isSignUp, onSuccess }: EmailOTPFormProps) {
     setError(null);
     setLoading(true);
     try {
-      const success = await sendOTP(email);
-      if (success) {
+      const res = await api.post('/auth/send-otp', { email });
+      if (res?.success) {
         setStep("otp");
         startTimer();
         toast.success("OTP sent to your email");
       } else {
-        setError("Failed to send OTP. Please try again.");
+        setError(res?.message || "Failed to send OTP. Please try again.");
       }
     } catch (err) {
       setError("An unexpected error occurred");
@@ -69,8 +71,8 @@ export function EmailOTPForm({ isSignUp, onSuccess }: EmailOTPFormProps) {
     setLoading(true);
     try {
       const token = await verifyOTP(email, otp);
-      if (token) {
-        login(token);
+      if (token && typeof token === 'string') {
+        Cookies.set('token', token);
         if (isSignUp) {
           setStep("name");
         } else {

@@ -36,6 +36,20 @@ const userSchema = new mongoose.Schema({
   },
   resetPasswordToken: String,
   resetPasswordExpire: Date,
+  usage: {
+    messagesThisMonth: {
+      type: Number,
+      default: 0,
+    },
+    usageMonth: {
+      type: Number,
+      default: () => new Date().getUTCMonth(),
+    },
+    usageYear: {
+      type: Number,
+      default: () => new Date().getUTCFullYear(),
+    },
+  },
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {

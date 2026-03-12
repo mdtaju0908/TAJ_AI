@@ -20,6 +20,7 @@
   "author": "TAJ_AI",
   "license": "ISC",
   "dependencies": {
+    "@google/genai": "^1.44.0",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.0.1",
     "cookie-parser": "^1.4.6",
@@ -31,6 +32,7 @@
     "helmet": "^7.1.0",
     "hpp": "^0.2.3",
     "jsonwebtoken": "^9.0.2",
+    "mime": "^4.1.0",
     "mongoose": "^8.2.0",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^8.0.2",

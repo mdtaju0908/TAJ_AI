@@ -15,12 +15,14 @@ export interface Chat {
 interface ChatState {
   chats: Chat[];
   activeChatId: string | null;
+  selectedModel: string;
   isLoading: boolean;
   
   fetchChats: () => Promise<void>;
   fetchChat: (id: string) => Promise<void>;
   createChat: () => Promise<string | null>;
   setActiveChat: (id: string) => void;
+  setSelectedModel: (model: string) => void;
   deleteChat: (id: string) => Promise<void>;
   renameChat: (id: string, title: string) => Promise<void>;
   togglePin: (id: string) => void;
@@ -36,6 +38,7 @@ export const useChatStore = create<ChatState>()(
     (set, get) => ({
       chats: [],
       activeChatId: null,
+      selectedModel: 'gemini-3-flash-preview',
       isLoading: false,
 
       fetchChats: async () => {
@@ -98,6 +101,8 @@ export const useChatStore = create<ChatState>()(
       },
 
       setActiveChat: (id) => set({ activeChatId: id }),
+
+      setSelectedModel: (model) => set({ selectedModel: model }),
 
       deleteChat: async (id) => {
         try {
@@ -188,7 +193,10 @@ export const useChatStore = create<ChatState>()(
     }),
     {
       name: 'chat-storage',
-      partialize: (state) => ({ activeChatId: state.activeChatId }),
+      partialize: (state) => ({
+        activeChatId: state.activeChatId,
+        selectedModel: state.selectedModel,
+      }),
     }
   )
 );

@@ -4,21 +4,23 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { Send, Square, RefreshCw } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
+import { toast } from "react-hot-toast";
 import type { RouteMode } from "@/lib/aiRouter";
 import { cn } from "@/lib/utils";
 import { useChat } from "@/hooks/useChat";
 import { useChatStore } from "@/stores/chatStore";
+import { chatService } from "@/services/chat";
 import { Button } from "@/components/ui/Button";
 import { MessageBubble } from "./MessageBubble";
 import { ThinkingIndicator } from "./ThinkingIndicator";
 import { SuggestionChips } from "./SuggestionChips";
-import { AttachmentPreview, type Attachment } from "./AttachmentPreview";
+import { AttachmentPreview } from "./AttachmentPreview";
 import { FileUploader, type UploadedFile } from "./FileUploader";
 
 export function ChatInterface({ id, mode = "chat" }: { id?: string; mode?: RouteMode }) {
   const router = useRouter();
   const [draft, setDraft] = React.useState("");
-  const [attachments, setAttachments] = React.useState<Attachment[]>([]);
+  const [attachments, setAttachments] = React.useState<UploadedFile[]>([]);
   const [localChatId, setLocalChatId] = React.useState<string | null>(null);
   const [bootstrapped, setBootstrapped] = React.useState(false);
   const messagesEndRef = React.useRef<HTMLDivElement | null>(null);
@@ -55,20 +57,24 @@ export function ChatInterface({ id, mode = "chat" }: { id?: string; mode?: Route
       setBootstrapped(true);
       return;
     }
-    const newId = createChat();
-    setLocalChatId(newId);
-    setActiveChat(newId);
-    setBootstrapped(true);
-    router.replace(`/chat/${newId}`);
+    (async () => {
+      const newId = await createChat();
+      setLocalChatId(newId);
+      if (newId) setActiveChat(newId);
+      setBootstrapped(true);
+      if (newId) router.replace(`/chat/${newId}`);
+    })();
   }, [activeChatId, bootstrapped, createChat, id, localChatId, router, setActiveChat]);
 
   React.useEffect(() => {
     if (!effectiveChatId) return;
     if (chatExists) return;
-    const newId = createChat();
-    setLocalChatId(newId);
-    setActiveChat(newId);
-    router.replace(`/chat/${newId}`);
+    (async () => {
+      const newId = await createChat();
+      setLocalChatId(newId);
+      if (newId) setActiveChat(newId);
+      if (newId) router.replace(`/chat/${newId}`);
+    })();
   }, [chatExists, createChat, effectiveChatId, router, setActiveChat]);
 
   React.useEffect(() => {
@@ -78,13 +84,13 @@ export function ChatInterface({ id, mode = "chat" }: { id?: string; mode?: Route
   const suggestions = React.useMemo(() => {
     switch (mode) {
       case "image":
-        return ["A cyberpunk city at sunset", "A minimalist logo for TAJ AI", "A watercolor landscape"];
+        return ["Generate image of a cyberpunk city at sunset", "Generate image of a minimalist logo for TAJ AI", "Generate image of a watercolor landscape"];
       case "code":
         return ["Explain this error", "Refactor this function", "Write unit tests for this"];
       case "research":
         return ["Search recent developments", "Summarize key points", "Compare two approaches"];
       default:
-        return ["Summarize this", "Help me write an email", "Brainstorm ideas"];
+        return ["Summarize this", "Help me write an email", "Generate image of a futuristic workspace", "Brainstorm ideas"];
     }
   }, [mode]);
 
@@ -107,9 +113,23 @@ export function ChatInterface({ id, mode = "chat" }: { id?: string; mode?: Route
     if (!content) return;
     if (!effectiveChatId || !chatExists) return;
 
-    setDraft("");
-    setAttachments([]);
-    await sendMessage(content);
+    try {
+      const uploadedAttachments = attachments.length > 0
+        ? await chatService.uploadAttachments(
+            attachments.map((item) => ({
+              file: item.file,
+              type: item.type,
+            }))
+          )
+        : [];
+
+      await sendMessage(content, { attachments: uploadedAttachments });
+      setDraft("");
+      setAttachments([]);
+    } catch (error) {
+      toast.error('Failed to upload one or more attachments.');
+      return;
+    }
 
     const chat = chats.find((c) => c.id === effectiveChatId);
     if (chat && /^New Chat \d+$/i.test(chat.title)) {

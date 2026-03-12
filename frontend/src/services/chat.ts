@@ -1,4 +1,5 @@
 import { api } from "@/lib/api";
+import { API_URL, getHeaders } from "@/lib/api";
 import { Message } from "@/types/message";
 
 export interface Chat {
@@ -7,6 +8,24 @@ export interface Chat {
   messages: Message[];
   updatedAt: string;
   pinned?: boolean;
+}
+
+export interface ChatAttachment {
+  url: string;
+  type?: string;
+  public_id?: string;
+}
+
+interface GeminiDonePayload {
+  images?: string[];
+  warning?: string | null;
+}
+
+interface StreamChatOptions {
+  signal?: AbortSignal;
+  model?: string;
+  attachments?: ChatAttachment[];
+  onDone?: (payload: GeminiDonePayload) => void;
 }
 
 export const chatService = {
@@ -26,6 +45,21 @@ export const chatService = {
     return api.post(`/chats/${chatId}/messages`, { content, role });
   },
 
+  async uploadAttachments(files: Array<{ file: File; type: string }>): Promise<ChatAttachment[]> {
+    const uploaded: ChatAttachment[] = [];
+    for (const fileItem of files) {
+      const res = await api.upload('/upload', fileItem.file);
+      if (res?.success && res.data?.url) {
+        uploaded.push({
+          url: res.data.url,
+          type: res.data.type || fileItem.type,
+          public_id: res.data.public_id,
+        });
+      }
+    }
+    return uploaded;
+  },
+
   async deleteChat(id: string): Promise<{ success: boolean }> {
     return api.delete(`/chats/${id}`);
   },
@@ -38,8 +72,13 @@ export const chatService = {
   async *streamChatResponse(
     input: string,
     chatId: string,
-    opts: { signal?: AbortSignal } = {}
+    opts: StreamChatOptions = {}
   ): AsyncGenerator<string> {
+    if ((opts.model || '').startsWith('gemini-')) {
+      yield* this.streamGeminiResponse(input, chatId, opts);
+      return;
+    }
+
     // Send user message to backend to save it
     await this.sendMessage(chatId, input, 'user');
 
@@ -67,6 +106,74 @@ export const chatService = {
     // Save the full AI response to backend
     if (!opts.signal?.aborted) {
         await this.sendMessage(chatId, response, 'assistant');
+    }
+  },
+
+  async *streamGeminiResponse(
+    input: string,
+    chatId: string,
+    opts: StreamChatOptions = {}
+  ): AsyncGenerator<string> {
+    const res = await fetch(`${API_URL}/chat/gemini`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({
+        prompt: input,
+        chatId,
+        model: opts.model,
+        attachments: opts.attachments || [],
+      }),
+      signal: opts.signal,
+    });
+
+    if (!res.ok || !res.body) {
+      let message = 'Failed to connect Gemini stream';
+      try {
+        const data = await res.json();
+        message = data?.error || data?.message || message;
+      } catch {
+        // no-op
+      }
+      throw new Error(message);
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const events = buffer.split('\n\n');
+      buffer = events.pop() || '';
+
+      for (const event of events) {
+        const line = event
+          .split('\n')
+          .find((row) => row.startsWith('data: '));
+
+        if (!line) continue;
+
+        const payload = JSON.parse(line.slice(6));
+
+        if (payload.type === 'chunk' && payload.value) {
+          yield String(payload.value);
+          continue;
+        }
+
+        if (payload.type === 'error') {
+          throw new Error(payload.message || 'Gemini stream error');
+        }
+
+        if (payload.type === 'done') {
+          opts.onDone?.({
+            images: payload.images || [],
+            warning: payload.warning || null,
+          });
+        }
+      }
     }
   }
 };

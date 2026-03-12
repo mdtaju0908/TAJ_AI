@@ -9,6 +9,7 @@ export interface UploadedFile {
   size: number;
   type: string;
   url: string;
+  file: File;
 }
 
 export function FileUploader({ onFiles }: { onFiles: (files: UploadedFile[]) => void }) {
@@ -20,6 +21,7 @@ export function FileUploader({ onFiles }: { onFiles: (files: UploadedFile[]) => 
     size: file.size,
     type: file.type,
     url: URL.createObjectURL(file),
+    file,
   });
 
   return (
