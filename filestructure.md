@@ -1,3 +1,6 @@
+### TAJ_AI File Structures
+
+```
 TAJ_AI/
  ├── public/
  │   ├── TAJ-AI.svg
@@ -56,17 +59,4 @@ TAJ_AI/
  ├── postcss.config.mjs
  ├── tailwind.config.ts
  └── tsconfig.json
-
-Descriptions
- - src/app/layout.tsx: root HTML and providers; wraps pages with ThemeProvider and ClientLayout
- - src/app/page.tsx: home page; renders ChatInterface
- - src/app/[mode]/page.tsx: renders ModelSelector and ChatInterface based on mode
- - src/app/chat/[id]/page.tsx: dynamic chat route scoped by chat id
- - src/components/ClientLayout.tsx: app shell; header, sidebar, and auth modal integration
- - src/components/Sidebar*.tsx: sidebar header/sections/footer with collapse, search, new chat
- - src/components/ChatInterface.tsx: message list, input bar, tools menu, attachments, mock AI flow
- - src/components/MessageBubble.tsx: markdown rendering, code highlight, actions
- - src/components/SettingsModal.tsx: tabbed settings with localStorage persistence
- - src/hooks/useChatStore.tsx: local state store for chats and settings; persistence helpers
- - src/hooks/useAuth.tsx: simple auth context using localStorage token
- - src/lib/*: utilities and routing helpers
+```
