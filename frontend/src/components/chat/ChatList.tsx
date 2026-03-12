@@ -24,16 +24,18 @@ export function ChatList({
   onDelete,
   collapsed = false,
   onOpenSearch,
-}: ChatListProps & { collapsed?: boolean; onOpenSearch?: () => void }) {
+  isLoading = false,
+}: ChatListProps & { collapsed?: boolean; onOpenSearch?: () => void; isLoading?: boolean }) {
   const pathname = usePathname();
   const { pinned, recent } = React.useMemo(() => {
+    if (isLoading) return { pinned: [], recent: [] };
     const q = search.trim().toLowerCase();
     const filtered = !q ? chats : chats.filter(c => c.title.toLowerCase().includes(q));
     return {
       pinned: filtered.filter(c => c.pinned),
       recent: filtered.filter(c => !c.pinned),
     };
-  }, [chats, search]);
+  }, [chats, search, isLoading]);
 
   return (
     <div className="flex-1 overflow-y-auto px-2 space-y-1 custom-scrollbar">
@@ -64,47 +66,57 @@ export function ChatList({
           <Search className="w-5 h-5" />
         </button>
       )}
-      
-      {!collapsed && pinned.length > 0 && (
-        <div className="px-2 mt-4 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-          <Pin className="w-3 h-3" /> Pinned
-        </div>
-      )}
-      {pinned.map((chat) => (
-        <ChatItem
-          key={chat.id}
-          chat={chat}
-          href={`/chat/${chat.id}`}
-          active={pathname === `/chat/${chat.id}`}
-          onPin={onPin}
-          onRename={onRename}
-          onDelete={onDelete}
-          collapsed={collapsed}
-        />
-      ))}
 
-      {!collapsed && recent.length > 0 && (
-        <div className="px-2 mt-4 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-          Recent
+      {isLoading ? (
+        <div className="space-y-2 mt-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-9 w-full bg-white/5 animate-pulse rounded-lg mx-auto" style={{ maxWidth: collapsed ? '40px' : '100%' }} />
+          ))}
         </div>
-      )}
-      {recent.map((chat) => (
-        <ChatItem
-          key={chat.id}
-          chat={chat}
-          href={`/chat/${chat.id}`}
-          active={pathname === `/chat/${chat.id}`}
-          onPin={onPin}
-          onRename={onRename}
-          onDelete={onDelete}
-          collapsed={collapsed}
-        />
-      ))}
-      
-      {chats.length === 0 && !collapsed && (
-        <div className="px-4 py-8 text-center text-gray-400 text-sm">
-          No chats yet
-        </div>
+      ) : (
+        <>
+          {!collapsed && pinned.length > 0 && (
+            <div className="px-2 mt-4 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+              <Pin className="w-3 h-3" /> Pinned
+            </div>
+          )}
+          {pinned.map((chat) => (
+            <ChatItem
+              key={chat.id}
+              chat={chat}
+              href={`/chat/${chat.id}`}
+              active={pathname === `/chat/${chat.id}`}
+              onPin={onPin}
+              onRename={onRename}
+              onDelete={onDelete}
+              collapsed={collapsed}
+            />
+          ))}
+
+          {!collapsed && recent.length > 0 && (
+            <div className="px-2 mt-4 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              Recent
+            </div>
+          )}
+          {recent.map((chat) => (
+            <ChatItem
+              key={chat.id}
+              chat={chat}
+              href={`/chat/${chat.id}`}
+              active={pathname === `/chat/${chat.id}`}
+              onPin={onPin}
+              onRename={onRename}
+              onDelete={onDelete}
+              collapsed={collapsed}
+            />
+          ))}
+          
+          {chats.length === 0 && !collapsed && (
+            <div className="px-4 py-8 text-center text-gray-400 text-sm">
+              No chats yet
+            </div>
+          )}
+        </>
       )}
     </div>
   );

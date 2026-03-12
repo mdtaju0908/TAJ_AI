@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
-import { streamChatResponse } from "@/services/chat";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { chatService } from "@/services/chat";
 import { useChatStore } from "@/stores/chatStore";
 import { useShallow } from 'zustand/react/shallow';
 import type { Message } from "@/types/message";
@@ -10,17 +10,28 @@ export function useChat(chatId: string) {
   const [isLoading, setIsLoading] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
-  const { chats, addMessage, updateMessage, setMessages } = useChatStore(
+  const { chats, addMessage, updateMessage, setMessages, fetchChat } = useChatStore(
     useShallow((state) => ({
       chats: state.chats,
       addMessage: state.addMessage,
       updateMessage: state.updateMessage,
       setMessages: state.setMessages,
+      fetchChat: state.fetchChat,
     }))
   );
 
   const currentChat = chats.find(c => c.id === chatId);
   const messages = currentChat?.messages || [];
+
+  // Fetch chat details (including messages) when chatId changes
+  useEffect(() => {
+    if (chatId && chatId !== "__missing__") {
+      // Check if we need to fetch messages
+      // Maybe we already have them?
+      // But fetching ensures we have the latest.
+      fetchChat(chatId);
+    }
+  }, [chatId, fetchChat]);
 
   const sendMessage = async (content: string, isRegenerate = false) => {
     if (!content.trim() && !isRegenerate) return;
@@ -48,7 +59,7 @@ export function useChat(chatId: string) {
       });
 
       let acc = "";
-      for await (const chunk of streamChatResponse(content || "Regenerating...", chatId, { signal: abortRef.current.signal })) {
+      for await (const chunk of chatService.streamChatResponse(content || "Regenerating...", chatId, { signal: abortRef.current.signal })) {
         acc += chunk;
         updateMessage(chatId, assistantId, acc);
       }

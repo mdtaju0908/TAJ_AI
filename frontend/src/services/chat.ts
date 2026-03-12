@@ -1,50 +1,72 @@
-import { API_URL } from "@/lib/api";
+import { api } from "@/lib/api";
+import { Message } from "@/types/message";
 
-export type ToolCommand = "image" | "search" | "summarize" | null;
-
-export interface StreamOptions {
-  signal?: AbortSignal;
+export interface Chat {
+  id: string;
+  title: string;
+  messages: Message[];
+  updatedAt: string;
+  pinned?: boolean;
 }
 
-export async function* streamChatResponse(
-  input: string,
-  chatId: string,
-  opts: StreamOptions = {}
-): AsyncGenerator<string> {
-  const m = input.trim().match(/^\/(image|search|summarize)\b(?:\s+(.*))?$/i);
-  const tool = (m?.[1]?.toLowerCase() as ToolCommand) || null;
-  const payload =
-    tool === null
-      ? { message: input, chatId }
-      : { command: tool, args: (m?.[2] || "").trim(), chatId };
+export const chatService = {
+  async getChats(): Promise<{ success: boolean; data: Chat[] }> {
+    return api.get("/chats");
+  },
 
-  const endpoint =
-    tool === null
-      ? `${API_URL}/chat/stream`
-      : `${API_URL}/tools/${tool}/stream`;
+  async createChat(): Promise<{ success: boolean; data: Chat }> {
+    return api.post("/chats", {});
+  },
 
-  const res = await fetch(endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-    signal: opts.signal,
-  });
+  async getChat(id: string): Promise<{ success: boolean; data: { chat: Chat; messages: Message[] } }> {
+    return api.get(`/chats/${id}`);
+  },
 
-  if (!res.ok || !res.body) {
-    const text = await res.text().catch(() => "");
-    throw new Error(text || `Request failed: ${res.status}`);
-  }
+  async sendMessage(chatId: string, content: string, role: 'user' | 'assistant'): Promise<{ success: boolean; data: Message }> {
+    return api.post(`/chats/${chatId}/messages`, { content, role });
+  },
 
-  const reader = res.body.getReader();
-  const decoder = new TextDecoder();
-  try {
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      const chunk = decoder.decode(value, { stream: true });
-      if (chunk) yield chunk;
+  async deleteChat(id: string): Promise<{ success: boolean }> {
+    return api.delete(`/chats/${id}`);
+  },
+
+  async renameChat(id: string, title: string): Promise<{ success: boolean; data: Chat }> {
+    return api.put(`/chats/${id}`, { title });
+  },
+  
+  // Streaming is simulated for now as backend doesn't support it yet
+  async *streamChatResponse(
+    input: string,
+    chatId: string,
+    opts: { signal?: AbortSignal } = {}
+  ): AsyncGenerator<string> {
+    // Send user message to backend to save it
+    await this.sendMessage(chatId, input, 'user');
+
+    // Simulate AI response delay
+    const response = "This is a simulated response from the backend (LLM integration pending). I received: " + input;
+    const chunks = response.split(" ");
+    
+    // Save assistant message start (empty) - Actually backend addMessage saves it complete
+    // We should probably save the AI message AFTER generation in a real app, 
+    // or stream it to backend.
+    // For now, we will just simulate streaming back to UI.
+    // And finally save the full message to backend?
+    // The backend `addMessage` saves a message.
+    // So:
+    // 1. UI calls sendMessage(user) -> saved to DB.
+    // 2. UI simulates stream.
+    // 3. UI calls sendMessage(assistant) -> saved to DB.
+    
+    for (const chunk of chunks) {
+      if (opts.signal?.aborted) break;
+      yield chunk + " ";
+      await new Promise(r => setTimeout(r, 50));
     }
-  } finally {
-    reader.releaseLock();
+    
+    // Save the full AI response to backend
+    if (!opts.signal?.aborted) {
+        await this.sendMessage(chatId, response, 'assistant');
+    }
   }
-}
+};

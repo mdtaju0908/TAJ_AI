@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { GoogleIcon } from './GoogleIcon';
-import { sendOtp, signUp, googleLogin } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import toast from 'react-hot-toast';
 
@@ -12,17 +11,14 @@ export function SignUpTab() {
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { register, verifyOTP, signInWithGoogle } = useAuth();
 
-  const handleSendOtp = async () => {
+  const handleRegister = async () => {
     setIsLoading(true);
     try {
-      const res = await sendOtp(email);
-      if (res.success) {
+      const success = await register(name, email);
+      if (success) {
         setOtpSent(true);
-        toast.success('OTP sent successfully!');
-      } else {
-        toast.error(res.message || 'Failed to send OTP');
       }
     } catch {
       toast.error('An unexpected error occurred');
@@ -30,16 +26,10 @@ export function SignUpTab() {
     setIsLoading(false);
   };
 
-  const handleSignUp = async () => {
+  const handleVerify = async () => {
     setIsLoading(true);
     try {
-      const res = await signUp(name, email, otp);
-      if (res.token) {
-        login(res.token);
-        toast.success('Account created successfully!');
-      } else {
-        toast.error(res.message || 'Sign up failed');
-      }
+      await verifyOTP(email, otp);
     } catch {
       toast.error('An unexpected error occurred');
     }
@@ -48,7 +38,7 @@ export function SignUpTab() {
 
   return (
     <div className="space-y-6">
-      <button onClick={googleLogin} className="w-full flex items-center justify-center gap-3 py-3 rounded-lg bg-white/10 hover:bg-white/20 transition-all text-white font-semibold">
+      <button onClick={signInWithGoogle} className="w-full flex items-center justify-center gap-3 py-3 rounded-lg bg-white/10 hover:bg-white/20 transition-all text-white font-semibold">
         <GoogleIcon className="w-6 h-6" />
         Continue with Google
       </button>
@@ -85,7 +75,7 @@ export function SignUpTab() {
         )}
       </div>
       <button 
-        onClick={otpSent ? handleSignUp : handleSendOtp}
+        onClick={otpSent ? handleVerify : handleRegister}
         className="w-full py-3 rounded-lg bg-blue-600 hover:bg-blue-700 transition-all text-white font-semibold disabled:bg-blue-800"
         disabled={isLoading}
       >

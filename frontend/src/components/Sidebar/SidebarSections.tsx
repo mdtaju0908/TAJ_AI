@@ -15,6 +15,7 @@ interface SidebarSectionsProps {
   onRename: (id: string, currentTitle: string) => void;
   onDelete: (id: string) => void;
   collapsed: boolean;
+  isLoading?: boolean;
 }
 
 export function SidebarSections({
@@ -26,6 +27,7 @@ export function SidebarSections({
   onRename,
   onDelete,
   collapsed,
+  isLoading = false,
 }: SidebarSectionsProps) {
   return (
     <div className="flex-1 flex flex-col justify-between overflow-y-hidden">
@@ -51,6 +53,7 @@ export function SidebarSections({
         onRename={onRename}
         onDelete={onDelete}
         collapsed={collapsed}
+        isLoading={isLoading}
         onOpenSearch={() => {
           const event = new CustomEvent('tajai:open-search');
           window.dispatchEvent(event);

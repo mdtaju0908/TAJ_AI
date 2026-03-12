@@ -2,43 +2,19 @@
 
 import { useState } from 'react';
 import { GoogleIcon } from './GoogleIcon';
-import { sendOtp, verifyOtp, googleLogin } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import toast from 'react-hot-toast';
 
 export function LoginTab() {
   const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, signInWithGoogle } = useAuth();
 
-  const handleSendOtp = async () => {
+  const handleLogin = async () => {
     setIsLoading(true);
     try {
-      const res = await sendOtp(email);
-      if (res.success) {
-        setOtpSent(true);
-        toast.success('OTP sent successfully!');
-      } else {
-        toast.error(res.message || 'Failed to send OTP');
-      }
-    } catch {
-      toast.error('An unexpected error occurred');
-    }
-    setIsLoading(false);
-  };
-
-  const handleVerifyOtp = async () => {
-    setIsLoading(true);
-    try {
-      const res = await verifyOtp(email, otp);
-      if (res.token) {
-        login(res.token);
-        toast.success('Logged in successfully!');
-      } else {
-        toast.error(res.message || 'Invalid OTP');
-      }
+      await login(email, password);
     } catch {
       toast.error('An unexpected error occurred');
     }
@@ -47,7 +23,7 @@ export function LoginTab() {
 
   return (
     <div className="space-y-6">
-      <button onClick={googleLogin} className="w-full flex items-center justify-center gap-3 py-3 rounded-lg bg-white/10 hover:bg-white/20 transition-all text-white font-semibold">
+      <button onClick={signInWithGoogle} className="w-full flex items-center justify-center gap-3 py-3 rounded-lg bg-white/10 hover:bg-white/20 transition-all text-white font-semibold">
         <GoogleIcon className="w-6 h-6" />
         Continue with Google
       </button>
@@ -63,24 +39,21 @@ export function LoginTab() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="w-full px-4 py-3 rounded-lg bg-[rgba(59,130,246,0.1)] border border-[rgba(59,130,246,0.2)] text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          disabled={otpSent}
         />
-        {otpSent && (
-          <input 
-            type="text"
-            placeholder="6-Digit OTP"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg bg-[rgba(59,130,246,0.1)] border border-[rgba(59,130,246,0.2)] text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          />
-        )}
+        <input 
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full px-4 py-3 rounded-lg bg-[rgba(59,130,246,0.1)] border border-[rgba(59,130,246,0.2)] text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        />
       </div>
       <button 
-        onClick={otpSent ? handleVerifyOtp : handleSendOtp}
+        onClick={handleLogin}
         className="w-full py-3 rounded-lg bg-blue-600 hover:bg-blue-700 transition-all text-white font-semibold disabled:bg-blue-800"
         disabled={isLoading}
       >
-        {isLoading ? 'Loading...' : (otpSent ? 'Verify OTP' : 'Send OTP')}
+        {isLoading ? 'Loading...' : 'Login'}
       </button>
     </div>
   );

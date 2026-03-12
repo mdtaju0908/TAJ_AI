@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from '../../lib/utils';
 import { SidebarHeader } from './SidebarHeader';
@@ -28,25 +28,37 @@ export function Sidebar({
   const { isAuthenticated } = useAuth();
   const { setShowAuthModal } = useUIStore();
   
-  const { chats, createChat, renameChat, deleteChat, togglePin } = useChatStore(
+  const { chats, createChat, renameChat, deleteChat, togglePin, fetchChats, isLoading } = useChatStore(
     useShallow((state: any) => ({
       chats: state.chats,
       createChat: state.createChat,
       renameChat: state.renameChat,
       deleteChat: state.deleteChat,
       togglePin: state.togglePin,
+      fetchChats: state.fetchChats,
+      isLoading: state.isLoading,
     }))
   );
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+    if (isAuthenticated) {
+      fetchChats();
+    }
+  }, [isAuthenticated, fetchChats]);
 
   const onNewChat = async () => {
     if (!isAuthenticated && chats.length >= 3) {
       setShowAuthModal(true);
       return;
     }
-    const id = createChat();
-    onClose();
-    router.push(`/chat/${id}`);
+    const id = await createChat();
+    if (id) {
+      onClose();
+      router.push(`/chat/${id}`);
+    }
   };
 
   const onDelete = async (id: string) => {
@@ -103,6 +115,7 @@ export function Sidebar({
           onRename={onRename}
           onPin={onPin}
           collapsed={collapsed}
+          isLoading={!isMounted || isLoading}
         />
         <SidebarFooter collapsed={collapsed} />
       </div>

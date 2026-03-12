@@ -1,20 +1,40 @@
 import { useAuthStore } from '@/stores/authStore';
-import { authService } from '@/services/authService';
+import { authService, User } from '@/services/authService';
 import { toast } from 'react-hot-toast';
+import { useEffect } from 'react';
+import Cookies from 'js-cookie';
 
 export const useAuth = () => {
   const { user, isAuthenticated, isLoading, login: storeLogin, logout: storeLogout, updateUser } = useAuthStore();
 
-  const login = (token: string) => {
-    // In a real app, decode token to get user info.
-    // For now, we mock it or fetch user profile.
-    // Assuming token is just a string for now.
-    storeLogin({
-      id: 'mock-user-id',
-      email: 'user@example.com',
-      name: 'User',
-      provider: 'email'
-    });
+  useEffect(() => {
+    const token = Cookies.get('token');
+    if (token && !user) {
+      // Re-fetch user if token exists but user doesn't (page reload)
+      authService.getMe().then((res) => {
+        if (res.success && res.data?.user) {
+          storeLogin(res.data.user, token);
+        } else {
+          storeLogout();
+        }
+      });
+    }
+  }, []);
+
+  const login = async (email: string, password: string): Promise<boolean> => {
+    try {
+      const res = await authService.loginWithPassword(email, password);
+      if (res.success && res.data?.token && res.data.user) {
+        storeLogin(res.data.user, res.data.token);
+        toast.success('Logged in successfully');
+        return true;
+      }
+      toast.error(res.message || 'Login failed');
+      return false;
+    } catch (error) {
+      toast.error('Login failed');
+      return false;
+    }
   };
 
   const logout = () => {
@@ -22,42 +42,44 @@ export const useAuth = () => {
     toast.success('Logged out successfully');
   };
 
-  const sendOTP = async (email: string) => {
+  const register = async (name: string, email: string): Promise<boolean> => {
     try {
-      const res = await authService.sendOTP(email);
-      return res.success;
+      const res = await authService.register(name, email);
+      if (res.success) {
+        toast.success(res.message || 'OTP sent successfully');
+        return true;
+      }
+      toast.error(res.message || 'Registration failed');
+      return false;
     } catch (error) {
-      toast.error('Failed to send OTP');
+      toast.error('Registration failed');
       return false;
     }
   };
 
-  const verifyOTP = async (email: string, otp: string) => {
+  const verifyOTP = async (email: string, otp: string): Promise<boolean> => {
     try {
       const res = await authService.verifyOTP(email, otp);
-      if (res.success && res.user) {
-        storeLogin({
-          ...res.user,
-          provider: 'email'
-        } as any);
-        return res.token || 'mock-token';
+      if (res.success && res.data?.token && res.data.user) {
+        storeLogin(res.data.user, res.data.token);
+        toast.success('Email verified successfully');
+        return true;
       }
-      return null;
+      toast.error(res.message || 'Invalid OTP');
+      return false;
     } catch (error) {
-      toast.error('Failed to verify OTP');
-      return null;
+      toast.error('Verification failed');
+      return false;
     }
   };
 
   const signInWithGoogle = async () => {
     try {
       const res = await authService.googleLogin();
-      if (res.success && res.user) {
-        storeLogin({
-          ...res.user,
-          provider: 'google'
-        } as any);
+      if (res.success) {
         toast.success('Logged in with Google');
+      } else {
+        toast.error(res.message || 'Google login not supported yet');
       }
     } catch (error) {
       toast.error('Google login failed');
@@ -85,7 +107,7 @@ export const useAuth = () => {
     isLoading,
     login,
     logout,
-    sendOTP,
+    register,
     verifyOTP,
     signInWithGoogle,
     updateProfile
