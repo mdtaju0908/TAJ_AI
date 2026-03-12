@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { isValidMode, type RouteMode } from '@/lib/aiRouter';
-import { ChatInterface } from '@/components/ChatInterface';
-import { ModelSelector } from '@/components/ModelSelector';
+import { ChatInterface } from '@/components/chat/ChatInterface';
+import { ModelSelector } from '@/components/chat/ModelSelector';
 
 export default function ModePage({ params }: { params: { mode: string } }) {
   const modeParam = params.mode;

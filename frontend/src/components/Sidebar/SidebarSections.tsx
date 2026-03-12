@@ -1,9 +1,10 @@
 "use client";
 
 import { Plus } from 'lucide-react';
-import { ChatList } from './ChatList';
-import type { ChatItemData } from './ChatItem';
+import { ChatList } from '../Chat/ChatList';
+import type { ChatItemData } from '../Chat/ChatItem';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/Button';
 
 interface SidebarSectionsProps {
   chats: ChatItemData[];
@@ -29,17 +30,18 @@ export function SidebarSections({
   return (
     <div className="flex-1 flex flex-col justify-between overflow-y-hidden">
       <div className="px-3 pt-3 pb-1">
-        <button
+        <Button
           onClick={onNewChat}
+          variant="secondary"
           className={cn(
-            "w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[rgba(59,130,246,0.1)] text-white hover:bg-[rgba(59,130,246,0.2)] transition-all duration-200",
+            "w-full flex items-center justify-center gap-2 py-2.5 bg-[rgba(59,130,246,0.1)] text-white hover:bg-[rgba(59,130,246,0.2)]",
             collapsed && "px-0"
           )}
           title="New Chat"
         >
           <Plus className="w-5 h-5" />
           {!collapsed && <span className="text-sm font-medium">New Chat</span>}
-        </button>
+        </Button>
       </div>
       <ChatList
         chats={chats}

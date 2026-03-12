@@ -1,74 +1,96 @@
-"use client";
+import { useAuthStore } from '@/stores/authStore';
+import { authService } from '@/services/authService';
+import { toast } from 'react-hot-toast';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-}
-
-interface AuthContextType {
-  user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (token: string) => void;
-  logout: () => void;
-  signup: (name: string, email: string, password: string) => void;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const token = localStorage.getItem('tajai_token');
-    if (token) {
-      // Here you would typically verify the token with your backend
-      // For now, we'll just decode it (assuming JWT)
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        setUser({ id: payload.id, name: payload.name, email: payload.email, avatar: payload.avatar });
-      } catch (e) {
-        localStorage.removeItem('tajai_token');
-      }
-    }
-    setIsLoading(false);
-  }, []);
+export const useAuth = () => {
+  const { user, isAuthenticated, isLoading, login: storeLogin, logout: storeLogout, updateUser } = useAuthStore();
 
   const login = (token: string) => {
-    localStorage.setItem('tajai_token', token);
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      setUser({ id: payload.id, name: payload.name, email: payload.email, avatar: payload.avatar });
-    } catch (e) {}
+    // In a real app, decode token to get user info.
+    // For now, we mock it or fetch user profile.
+    // Assuming token is just a string for now.
+    storeLogin({
+      id: 'mock-user-id',
+      email: 'user@example.com',
+      name: 'User',
+      provider: 'email'
+    });
   };
 
   const logout = () => {
-    localStorage.removeItem('tajai_token');
-    setUser(null);
+    storeLogout();
+    toast.success('Logged out successfully');
   };
 
-  const signup = (name: string, email: string, password: string) => {
-    const fakePayload = { id: Math.random().toString(36).slice(2), name, email };
-    const token = `header.${btoa(JSON.stringify(fakePayload))}.signature`;
-    login(token);
+  const sendOTP = async (email: string) => {
+    try {
+      const res = await authService.sendOTP(email);
+      return res.success;
+    } catch (error) {
+      toast.error('Failed to send OTP');
+      return false;
+    }
   };
 
-  return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, logout, signup }}>
-      {children}
-    </AuthContext.Provider>
-  );
-}
+  const verifyOTP = async (email: string, otp: string) => {
+    try {
+      const res = await authService.verifyOTP(email, otp);
+      if (res.success && res.user) {
+        storeLogin({
+          ...res.user,
+          provider: 'email'
+        } as any);
+        return res.token || 'mock-token';
+      }
+      return null;
+    } catch (error) {
+      toast.error('Failed to verify OTP');
+      return null;
+    }
+  };
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-}
+  const signInWithGoogle = async () => {
+    try {
+      const res = await authService.googleLogin();
+      if (res.success && res.user) {
+        storeLogin({
+          ...res.user,
+          provider: 'google'
+        } as any);
+        toast.success('Logged in with Google');
+      }
+    } catch (error) {
+      toast.error('Google login failed');
+    }
+  };
+
+  const updateProfile = async (name: string) => {
+    try {
+      const res = await authService.updateProfile(name);
+      if (res.success) {
+        updateUser({ name });
+        toast.success('Profile updated');
+        return true;
+      }
+      return false;
+    } catch (error) {
+      toast.error('Failed to update profile');
+      return false;
+    }
+  };
+
+  return {
+    user,
+    isAuthenticated,
+    isLoading,
+    login,
+    logout,
+    sendOTP,
+    verifyOTP,
+    signInWithGoogle,
+    updateProfile
+  };
+};
+
+// Deprecated: AuthProvider is no longer needed with Zustand
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => <>{children}</>;

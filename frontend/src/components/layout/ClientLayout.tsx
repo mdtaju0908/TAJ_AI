@@ -1,25 +1,32 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Sidebar } from './Sidebar';
-import { Menu, X } from 'lucide-react';
+import { Sidebar } from '../Sidebar/Sidebar';
+import { Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { AuthModal } from './AuthModal';
-import { AuthProvider, useAuth } from '@/hooks/useAuth';
-import { UserProfile } from './UserProfile';
+import { AuthModal } from '../Auth/AuthModal';
+import { useAuth } from '@/hooks/useAuth';
+import { UserProfile } from '../Sidebar/UserProfile';
 import { Toaster } from 'react-hot-toast';
-import { ChatStoreProvider } from '@/hooks/useChatStore';
-import { SettingsModal } from './SettingsModal';
+import { SettingsModal } from '../Settings/SettingsModal';
+import { useUIStore } from '@/stores/uiStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 
 function AppContent({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { isAuthenticated } = useAuth();
-
+  const { showAuthModal, setShowAuthModal } = useUIStore();
+  // Using settings store to subscribe to changes if needed, but layout might not need it directly
+  // except maybe for theme which is handled by next-themes provider in layout.tsx
+  
   useEffect(() => {
+    // Reset transient UI state
+    setShowAuthModal(false);
+    
     const checkWidth = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
@@ -30,9 +37,17 @@ function AppContent({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('resize', checkWidth);
   }, []);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
+
   return (
     <div className="flex h-screen text-gray-900 dark:text-gray-100 bg-[linear-gradient(135deg,#0f172a,#020617)] overflow-hidden">
-      <Toaster />
+      <Toaster position="top-center" />
       <Sidebar 
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
@@ -68,9 +83,12 @@ function AppContent({ children }: { children: React.ReactNode }) {
             </div>
             <div className="flex items-center gap-3">
               {isAuthenticated ? (
-                <UserProfile />
+                <UserProfile collapsed={false} />
               ) : (
-                <button onClick={() => setAuthModalOpen(true)} className="px-4 py-2 rounded-full bg-[rgba(59,130,246,0.1)] border border-[rgba(59,130,246,0.2)] text-white font-semibold hover:bg-[rgba(59,130,246,0.2)] transition-all">
+                <button 
+                  onClick={() => setShowAuthModal(true)} 
+                  className="px-4 py-2 rounded-full bg-[rgba(59,130,246,0.1)] border border-[rgba(59,130,246,0.2)] text-white font-semibold hover:bg-[rgba(59,130,246,0.2)] transition-all"
+                >
                   Login
                 </button>
               )}
@@ -84,18 +102,12 @@ function AppContent({ children }: { children: React.ReactNode }) {
           </div>
         </main>
       </div>
-      {!isAuthenticated && <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />}
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
       <SettingsModal />
     </div>
   );
 }
 
 export function ClientLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <AuthProvider>
-      <ChatStoreProvider>
-        <AppContent>{children}</AppContent>
-      </ChatStoreProvider>
-    </AuthProvider>
-  );
+  return <AppContent>{children}</AppContent>;
 }

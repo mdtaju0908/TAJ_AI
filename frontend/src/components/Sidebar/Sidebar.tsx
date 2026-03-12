@@ -2,11 +2,14 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { cn } from '@/lib/utils';
+import { cn } from '../../lib/utils';
 import { SidebarHeader } from './SidebarHeader';
 import { SidebarSections } from './SidebarSections';
 import { SidebarFooter } from './SidebarFooter';
-import { useChatStore } from '@/hooks/useChatStore';
+import { useChatStore } from '../../stores/chatStore';
+import { useShallow } from 'zustand/react/shallow';
+import { useAuth } from '../../hooks/useAuth';
+import { useUIStore } from '../../stores/uiStore';
 
 export function Sidebar({ 
   isOpen, 
@@ -22,27 +25,54 @@ export function Sidebar({
   onToggle: () => void;
 }) {
   const [search, setSearch] = useState('');
-  const { chats, createNewChat, updateChatTitle, deleteChat, togglePin } = useChatStore();
+  const { isAuthenticated } = useAuth();
+  const { setShowAuthModal } = useUIStore();
+  
+  const { chats, createChat, renameChat, deleteChat, togglePin } = useChatStore(
+    useShallow((state: any) => ({
+      chats: state.chats,
+      createChat: state.createChat,
+      renameChat: state.renameChat,
+      deleteChat: state.deleteChat,
+      togglePin: state.togglePin,
+    }))
+  );
   const router = useRouter();
 
   const onNewChat = async () => {
-    const id = createNewChat();
+    if (!isAuthenticated && chats.length >= 3) {
+      setShowAuthModal(true);
+      return;
+    }
+    const id = createChat();
     onClose();
     router.push(`/chat/${id}`);
   };
 
   const onDelete = async (id: string) => {
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
     if (!confirm('Delete this chat?')) return;
     deleteChat(id);
   };
 
   const onRename = async (id: string, currentTitle: string) => {
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
     const title = prompt('Rename chat', currentTitle || 'Untitled');
     if (!title) return;
-    updateChatTitle(id, title);
+    renameChat(id, title);
   };
 
   const onPin = async (id: string) => {
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
     togglePin(id);
   };
 
@@ -69,9 +99,9 @@ export function Sidebar({
           search={search}
           onSearch={setSearch}
           onNewChat={onNewChat}
-          onPin={onPin}
-          onRename={onRename}
           onDelete={onDelete}
+          onRename={onRename}
+          onPin={onPin}
           collapsed={collapsed}
         />
         <SidebarFooter collapsed={collapsed} />

@@ -2,6 +2,7 @@
 
 import { Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/Button';
 
 interface SidebarHeaderProps {
   collapsed: boolean;
@@ -14,13 +15,14 @@ export function SidebarHeader({ collapsed, onToggle, isMobile }: SidebarHeaderPr
     <div className={cn("px-3 py-3 flex items-center justify-between")}>
       <div className="flex items-center gap-2 flex-1">
         {!isMobile && (
-          <button
+          <Button
             onClick={onToggle}
+            variant="ghost"
             className="p-2 rounded-lg hover:bg-[rgba(59,130,246,0.1)] text-gray-200"
             title={collapsed ? "Expand" : "Collapse"}
           >
             <Menu className="w-5 h-5" />
-          </button>
+          </Button>
         )}
         {!collapsed && (
           <div className="flex items-center gap-2">

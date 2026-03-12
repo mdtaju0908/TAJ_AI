@@ -1,173 +1,157 @@
-"use client";
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import type { Message } from '@/types/message';
 
-import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
-import type { Chat } from "@/types/chat";
-import type { Message } from "@/types/message";
-
-type FontSize = "sm" | "md" | "lg";
-type Theme = "dark" | "light" | "system";
-
-interface Settings {
-  theme: Theme;
-  language: string;
-  fontSize: FontSize;
-  typingAnimation: boolean;
-  autoScroll: boolean;
-  soundNotification: boolean;
-  desktopNotifications: boolean;
-  emailUpdates: boolean;
-  twoFactorEnabled: boolean;
-  saveHistory: boolean;
+export interface Chat {
+  id: string;
+  title: string;
+  messages: Message[];
+  updatedAt: string;
+  pinned?: boolean;
 }
 
-interface ChatStore {
+interface ChatState {
   chats: Chat[];
-  activeChatId?: string;
-  settings: Settings;
-  isSettingsOpen: boolean;
-  createNewChat: () => string;
-  ensureChat: (id: string) => void;
-  selectChat: (id: string) => void;
-  setMessages: (id: string, messages: Message[]) => void;
-  addMessage: (id: string, message: Message) => void;
-  updateMessage: (id: string, messageId: string, content: string) => void;
-  updateChatTitle: (id: string, title: string) => void;
+  activeChatId: string | null;
+  newChatIndex: number;
+  
+  createChat: () => string;
+  setActiveChat: (id: string) => void;
   deleteChat: (id: string) => void;
+  renameChat: (id: string, title: string) => void;
   togglePin: (id: string) => void;
-  openSettings: () => void;
-  closeSettings: () => void;
-  updateSetting: (key: keyof Settings, value: any) => void;
-  clearChatHistory: () => void;
-  exportChats: (format: "json" | "txt") => void;
-  deleteAllData: () => void;
+  clearHistory: () => void;
+  
+  addMessage: (chatId: string, message: Message) => void;
+  updateMessage: (chatId: string, messageId: string, content: string) => void;
+  setMessages: (chatId: string, messages: Message[]) => void;
+  
+  exportChats: (format: 'json' | 'txt') => void;
 }
 
 const generateId = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
 
-export const useChatStore = create<ChatStore>()(
+export const useChatStore = create<ChatState>()(
   persist(
     (set, get) => ({
       chats: [],
-      activeChatId: undefined,
-      settings: {
-        theme: "dark",
-        language: "en",
-        fontSize: "md",
-        typingAnimation: true,
-        autoScroll: true,
-        soundNotification: false,
-        desktopNotifications: false,
-        emailUpdates: false,
-        twoFactorEnabled: false,
-        saveHistory: true,
-      },
-      isSettingsOpen: false,
-      createNewChat: () => {
+      activeChatId: null,
+      newChatIndex: 1,
+
+      createChat: () => {
         const id = generateId();
-        const now = new Date().toISOString();
-        const title = `New Chat`;
+        const { newChatIndex } = get();
+        const title = `New Chat ${newChatIndex}`;
+        const newChat: Chat = {
+          id,
+          title,
+          messages: [],
+          updatedAt: new Date().toISOString(),
+          pinned: false,
+        };
+
         set((state) => ({
-          chats: [{ id, title, messages: [], updatedAt: now }, ...state.chats],
+          chats: [newChat, ...state.chats],
           activeChatId: id,
+          newChatIndex: state.newChatIndex + 1,
         }));
+        
         return id;
       },
-      ensureChat: (id: string) => {
-        const exists = get().chats.some((c) => c.id === id);
-        if (!exists) {
-          const now = new Date().toISOString();
-          set((state) => ({
-            chats: [{ id, title: `New Chat`, messages: [], updatedAt: now }, ...state.chats],
-            activeChatId: id,
-          }));
-        } else {
-          set({ activeChatId: id });
-        }
-      },
-      selectChat: (id: string) => set({ activeChatId: id }),
-      setMessages: (id: string, messages: Message[]) =>
-        set((state) => ({
-          chats: state.chats.map((c) => (c.id === id ? { ...c, messages, updatedAt: new Date().toISOString() } : c)),
-        })),
-      addMessage: (id: string, message: Message) =>
+
+      setActiveChat: (id) => set({ activeChatId: id }),
+
+      deleteChat: (id) =>
+        set((state) => {
+          const newChats = state.chats.filter((c) => c.id !== id);
+          return {
+            chats: newChats,
+            activeChatId:
+              state.activeChatId === id
+                ? newChats.length > 0
+                  ? newChats[0].id
+                  : null
+                : state.activeChatId,
+          };
+        }),
+
+      renameChat: (id, title) =>
         set((state) => ({
           chats: state.chats.map((c) =>
-            c.id === id ? { ...c, messages: [...c.messages, message], updatedAt: new Date().toISOString() } : c
+            c.id === id ? { ...c, title } : c
           ),
         })),
-      updateMessage: (id: string, messageId: string, content: string) =>
+
+      togglePin: (id) =>
         set((state) => ({
           chats: state.chats.map((c) =>
-            c.id === id
+            c.id === id ? { ...c, pinned: !c.pinned } : c
+          ),
+        })),
+
+      clearHistory: () => set({ chats: [], activeChatId: null, newChatIndex: 1 }),
+
+      addMessage: (chatId, message) =>
+        set((state) => ({
+          chats: state.chats.map((c) =>
+            c.id === chatId
               ? {
                   ...c,
-                  messages: c.messages.map((m) => (m.id === messageId ? { ...m, content } : m)),
+                  messages: [...c.messages, message],
                   updatedAt: new Date().toISOString(),
                 }
               : c
           ),
         })),
-      updateChatTitle: (id: string, title: string) =>
-        set((state) => ({ chats: state.chats.map((c) => (c.id === id ? { ...c, title } : c)) })),
-      deleteChat: (id: string) =>
+
+      updateMessage: (chatId, messageId, content) =>
         set((state) => ({
-          chats: state.chats.filter((c) => c.id !== id),
-          activeChatId: state.activeChatId === id ? state.chats[0]?.id : state.activeChatId,
+          chats: state.chats.map((c) =>
+            c.id === chatId
+              ? {
+                  ...c,
+                  messages: c.messages.map((m) =>
+                    m.id === messageId ? { ...m, content } : m
+                  ),
+                }
+              : c
+          ),
         })),
-      togglePin: (id: string) =>
-        set((state) => {
-          const updated = state.chats.map((c) => (c.id === id ? { ...c, pinned: !c.pinned } : c));
-          updated.sort((a, b) => {
-            const ap = a.pinned ? 1 : 0;
-            const bp = b.pinned ? 1 : 0;
-            if (ap !== bp) return bp - ap;
-            return (b.updatedAt || "").localeCompare(a.updatedAt || "");
-          });
-          return { chats: updated };
-        }),
-      openSettings: () => set({ isSettingsOpen: true }),
-      closeSettings: () => set({ isSettingsOpen: false }),
-      updateSetting: (key, value) => set((state) => ({ settings: { ...state.settings, [key]: value } })),
-      clearChatHistory: () =>
-        set((state) => ({ chats: state.chats.map((c) => ({ ...c, messages: [] })) })),
-      exportChats: (format: "json" | "txt") => {
-        const chats = get().chats;
-        const data = JSON.stringify(chats, null, 2);
-        const txt = chats
-          .map((c) => {
-            const head = `# ${c.title}\n`;
-            const body = c.messages.map((m) => `${m.role.toUpperCase()}: ${m.content}`).join("\n\n");
-            return head + body;
-          })
-          .join("\n\n---\n\n");
-        const blob = new Blob([format === "json" ? data : txt], {
-          type: format === "json" ? "application/json" : "text/plain",
-        });
+
+      setMessages: (chatId, messages) =>
+        set((state) => ({
+          chats: state.chats.map((c) =>
+            c.id === chatId
+              ? {
+                  ...c,
+                  messages,
+                  updatedAt: new Date().toISOString(),
+                }
+              : c
+          ),
+        })),
+
+      exportChats: (format) => {
+        const { chats } = get();
+        const data = format === 'json' 
+          ? JSON.stringify(chats, null, 2)
+          : chats.map(c => 
+              `Chat: ${c.title}\nDate: ${c.updatedAt}\n\n${c.messages.map(m => 
+                `${m.role.toUpperCase()}: ${m.content}`
+              ).join('\n\n')}`
+            ).join('\n\n---\n\n');
+            
+        const blob = new Blob([data], { type: format === 'json' ? 'application/json' : 'text/plain' });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
+        const a = document.createElement('a');
         a.href = url;
-        a.download = `tajai-chats.${format}`;
-        document.body.appendChild(a);
+        a.download = `taj-ai-history.${format}`;
         a.click();
-        a.remove();
         URL.revokeObjectURL(url);
-      },
-      deleteAllData: () => {
-        set({ chats: [], activeChatId: undefined });
-        try {
-          localStorage.removeItem("taj-ai-chat");
-        } catch {}
       },
     }),
     {
-      name: "taj-ai-chat",
-      storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({
-        chats: state.chats,
-        activeChatId: state.activeChatId,
-        settings: state.settings,
-      }),
+      name: 'chat-storage',
     }
   )
 );
