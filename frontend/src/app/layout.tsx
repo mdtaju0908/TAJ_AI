@@ -10,9 +10,9 @@ export const metadata: Metadata = {
   title: "TAJ AI - Smart. Fast. Reliable.",
   description: "A full-stack AI assistant similar to Gemini AI",
   icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png",
+    icon: "/TAJ-AI.svg",
+    shortcut: "/TAJ-AI.svg",
+    apple: "/TAJ-AI.svg",
   },
 };
 

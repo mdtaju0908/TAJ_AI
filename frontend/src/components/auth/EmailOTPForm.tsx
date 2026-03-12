@@ -185,7 +185,7 @@ export function EmailOTPForm({ isSignUp, onSuccess }: EmailOTPFormProps) {
           </Button>
 
           <div className="text-center text-sm">
-            <span className="text-gray-400">Didn't get a code? </span>
+            <span className="text-gray-400">Didn&apos;t get a code? </span>
             <button
               onClick={handleSendOTP}
               disabled={loading || !canResend}

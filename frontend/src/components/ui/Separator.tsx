@@ -2,6 +2,8 @@
 
 import React from "react";
 
-export function Separator() {
-  return <div className="h-px w-full bg-white/10" />;
+import { cn } from "@/lib/utils";
+
+export function Separator({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn("h-px w-full bg-white/10", className)} {...props} />;
 }

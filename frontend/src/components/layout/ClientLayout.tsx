@@ -5,13 +5,13 @@ import { Sidebar } from '../Sidebar/Sidebar';
 import { Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { AuthModal } from '../Auth/AuthModal';
+import { AuthModal } from '../auth/AuthModal';
 import { useAuth } from '@/hooks/useAuth';
 import { UserProfile } from '../Sidebar/UserProfile';
 import { Toaster } from 'react-hot-toast';
 import { SettingsModal } from '../Settings/SettingsModal';
 import { useUIStore } from '@/stores/uiStore';
-import { useSettingsStore } from '@/stores/settingsStore';
+import Image from 'next/image';
 
 function AppContent({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -35,7 +35,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
     checkWidth();
     window.addEventListener('resize', checkWidth);
     return () => window.removeEventListener('resize', checkWidth);
-  }, []);
+  }, [setShowAuthModal]);
 
   useEffect(() => {
     setMounted(true);
@@ -78,7 +78,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
                 <Menu className="w-6 h-6" />
               </button>
               <Link href="/" className="flex items-center gap-3 md:hidden">
-                <img src="/TAJ-AI.svg" alt="TAJ AI" className="h-9 w-auto" />
+                <Image src="/TAJ-AI.svg" alt="TAJ AI" width={36} height={36} className="h-9 w-auto" />
               </Link>
             </div>
             <div className="flex items-center gap-3">

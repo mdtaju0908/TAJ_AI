@@ -33,8 +33,9 @@ export function AuthTabs({ onSuccess }: { onSuccess: () => void }) {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="signin" className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <div className="space-y-4">
+        <TabsContent value="signin">
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="space-y-4">
             <GoogleButton />
             
             {!showEmailForm ? (
@@ -60,11 +61,13 @@ export function AuthTabs({ onSuccess }: { onSuccess: () => void }) {
             ) : (
               <EmailOTPForm isSignUp={false} onSuccess={onSuccess} />
             )}
+            </div>
           </div>
         </TabsContent>
 
-        <TabsContent value="signup" className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <div className="space-y-4">
+        <TabsContent value="signup">
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="space-y-4">
             <GoogleButton />
             
             {!showEmailForm ? (
@@ -90,12 +93,13 @@ export function AuthTabs({ onSuccess }: { onSuccess: () => void }) {
             ) : (
               <EmailOTPForm isSignUp={true} onSuccess={onSuccess} />
             )}
+            </div>
           </div>
         </TabsContent>
       </Tabs>
       
       <p className="text-[10px] text-center text-gray-500 px-6 leading-relaxed">
-        By continuing, you agree to TAJ AI's <span className="underline hover:text-gray-400 cursor-pointer">Terms of Service</span> and <span className="underline hover:text-gray-400 cursor-pointer">Privacy Policy</span>.
+        By continuing, you agree to TAJ AI&apos;s <span className="underline hover:text-gray-400 cursor-pointer">Terms of Service</span> and <span className="underline hover:text-gray-400 cursor-pointer">Privacy Policy</span>.
       </p>
     </div>
   );

@@ -1,7 +1,6 @@
 "use client";
 
 import { X, File, Image as ImageIcon, FileText } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export interface Attachment {

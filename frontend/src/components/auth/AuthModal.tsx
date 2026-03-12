@@ -12,6 +12,7 @@ import { AuthTabs } from "./AuthTabs";
 import { useUIStore } from "../../stores/uiStore";
 import { Button } from "../ui/Button";
 import { X } from "lucide-react";
+import Image from "next/image";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -38,8 +39,8 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
         </button>
         <div className="p-8 space-y-8">
           <DialogHeader className="space-y-4 text-center">
-            <div className="mx-auto w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.2)] flex items-center justify-center p-2">
-              <img src="/TAJ-AI.svg" alt="TAJ AI" className="w-full h-full" />
+            <div className="mx-auto w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.2)] flex items-center justify-center p-2 relative">
+              <Image src="/TAJ-AI.svg" alt="TAJ AI" width={56} height={56} className="w-full h-full" />
             </div>
             <div className="space-y-1.5">
               <DialogTitle className="text-2xl font-bold tracking-tight text-white">Welcome to TAJ AI</DialogTitle>
